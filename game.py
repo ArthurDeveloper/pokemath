@@ -1,4 +1,3 @@
-import functools
 import pygame
 import random
 import time
@@ -39,47 +38,40 @@ class Game:
         # The pokeball is the hidden square
         self.pokeball_idx = random.randint(0, 1) if self.level < 6 else random.randint(0, 2)
         
-        # Get the index of the squares that aren't hidden
-        def get_non_pokeball_indices():
-            indices = []
-            for i, _ in enumerate(self.numbers):
-                if i == self.pokeball_idx: continue
-                indices.append(i)
-
-            return indices
-
-        non_pokeball_indices = get_non_pokeball_indices()
-
-
-        self.numbers[non_pokeball_indices[0]] = random.randint(0, self.max_random_a)
-        self.numbers[non_pokeball_indices[1]] = random.randint(0, self.max_random_b)
-        self.squares = [pygame.image.load(f'res/square_{i}.png') for i in self.numbers] 
-        
+        self.a = random.randint(0, self.max_random_a)
+        self.b = random.randint(0, self.max_random_b)
         with open('op.txt', 'r') as f:
             # Can be +, -, : or x
-            self.operation = f.read().strip()
+            self.operation = f.read().strip() 
 
-        # THe hidden number
         match self.operation:
             case '+':
-                self.numbers[self.pokeball_idx] = self.numbers[non_pokeball_indices[0]] + self.numbers[non_pokeball_indices[1]] 
+                self.c = self.a + self.b
             case '-':
-                if self.numbers[non_pokeball_indices[0]] < self.numbers[non_pokeball_indices[1]]:
-                    # swapping values
-                    self.numbers[non_pokeball_indices[0]], self.numbers[non_pokeball_indices[1]] = self.numbers[non_pokeball_indices[1]], self.numbers[non_pokeball_indices[0]]
-                self.numbers[self.pokeball_idx] = self.numbers[non_pokeball_indices[0]] - self.numbers[non_pokeball_indices[1]] 
+                while self.a < self.b:
+                    self.a = random.randint(0, self.max_random_a)
+                    self.b = random.randint(0, self.max_random_b)
+                self.c = self.a - self.b
             case ':':
-                if self.numbers[non_pokeball_indices[0]] < self.numbers[non_pokeball_indices[1]]:
-                    # swapping values
-                    self.numbers[non_pokeball_indices[0]], self.numbers[non_pokeball_indices[1]] = self.numbers[non_pokeball_indices[1]], self.numbers[non_pokeball_indices[0]]
+                while self.a < self.b or self.a == 0 or self.b == 0 or self.a % self.b != 0:
+                    self.a = random.randint(0, self.max_random_a)
+                    self.b = random.randint(0, self.max_random_b)
 
-                self.numbers[self.pokeball_idx] = self.numbers[non_pokeball_indices[0]] // self.numbers[non_pokeball_indices[1]] 
+                self.c = self.a // self.b
             case 'x':
-                self.numbers[self.pokeball_idx] = self.numbers[non_pokeball_indices[0]] * self.numbers[non_pokeball_indices[1]] 
+                while self.a < self.b or self.a == 0 or self.b == 0 or self.a % self.b != 0:
+                    self.a = random.randint(0, self.max_random_a)
+                    self.b = random.randint(0, self.max_random_b)
 
+                self.c = self.a * self.b
+        
+
+        self.numbers = [self.a, self.b, self.c]
+
+        self.squares = [pygame.image.load(f'res/square_{i if i <= 9 else 9}.png') for i in self.numbers]                          
 
         self.squares[self.pokeball_idx] = pygame.image.load('res/pokeball.png')
-        
+
         self.font = pygame.font.Font("res/PublicSans-VariableFont_wght.ttf", 128)
         # The number the user is typing, u'' makes it null
         self.typed_number = u''
@@ -110,6 +102,7 @@ class Game:
             # Using same time as level one for level zero
             self.initial_time = self.time = self.times[0]
 
+        print(f'{self.a}, {self.b}, {self.c}')
 
 
       
@@ -155,10 +148,18 @@ class Game:
                     except ValueError:
                         if event.key == pygame.K_RETURN:
                             self.has_tried = True
-                            if int(self.typed_number) == self.numbers[self.pokeball_idx]:
-                                self.correct = True
-                            else:
-                                self.correct = False
+                            match self.pokeball_idx:
+                                case 0:
+                                    if int(self.typed_number) == self.a:
+                                        self.correct = True
+                                    else:
+                                        self.correct = False
+                                case 1:
+                                    if int(self.typed_number) == self.b:
+                                        self.correct = True
+                                    else:
+                                        self.correct = False
+
                         elif event.key == pygame.K_BACKSPACE:
                             idx = len(self.typed_number)-1
                             self.typed_number = self.typed_number[:idx] + self.typed_number[idx+1:]
@@ -180,7 +181,7 @@ class Game:
                 640/2-177/2, 100
             ))
 
-            # Drawing number the user typed
+            # Drawing the number the user typed
             self.font.size('32')
             font_img = self.font.render(self.typed_number, True, (255, 255, 255))
             self.screen.blit(font_img, (640/2-30, 470))
@@ -215,7 +216,7 @@ class Game:
                     if self.score % 10 == 0 and self.level < 10:
                         self.level += 1
 
-                    # Changing high score if it's been beaten
+                    # Changing high score if it has been beaten
                     self.change_high_score(self.score)
 
                     self.setup()
@@ -243,4 +244,4 @@ class Game:
 
             pygame.display.flip()
 
-Game().loop() 
+Game().loop()
