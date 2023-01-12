@@ -159,6 +159,12 @@ class Game:
                                         self.correct = True
                                     else:
                                         self.correct = False
+                                case 2:
+                                    if int(self.typed_number) == self.c:
+                                        self.correct = True
+                                    else:
+                                        self.correct = False
+
 
                         elif event.key == pygame.K_BACKSPACE:
                             idx = len(self.typed_number)-1
