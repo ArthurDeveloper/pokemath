@@ -68,7 +68,7 @@ class Game:
 
         self.numbers = [self.a, self.b, self.c]
 
-        self.squares = [pygame.image.load(f'res/square_{i if i <= 9 else 9}.png') for i in self.numbers]                          
+        self.squares = [pygame.image.load(f'res/square_{i}.jpg') for i in self.numbers]                          
 
         self.squares[self.pokeball_idx] = pygame.image.load('res/pokeball.png')
 
